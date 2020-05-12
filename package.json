@@ -1,0 +1,60 @@
+{
+  "name": "email",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start:offline": "sls offline",
+    "deploy": "sls deploy",
+    "deploy:function": "sls deploy function -f email",
+    "prettier:check": "prettier --check \"./*.ts\" \"./**/*.ts\"",
+    "prettier:write": "prettier --write \"./*.ts\" \"./**/*.ts\"",
+    "eslint:check": "eslint . --ext .ts",
+    "eslint:write": "eslint . --ext .ts --fix",
+    "lint": "npm run eslint:check && npm run prettier:check",
+    "format": "npm run eslint:write && npm run prettier:write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/upframe/email.git"
+  },
+  "author": "Mathis Bullinger",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/upframe/email/issues"
+  },
+  "homepage": "https://github.com/upframe/email#readme",
+  "dependencies": {
+    "@babel/runtime": "^7.9.6",
+    "knex": "^0.21.1",
+    "pg": "^8.1.0",
+    "source-map-support": "^0.5.19"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.9.6",
+    "@babel/plugin-transform-runtime": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/node": "^13.13.5",
+    "@typescript-eslint/eslint-plugin": "^2.32.0",
+    "@typescript-eslint/parser": "^2.32.0",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
+    "babel-plugin-source-map-support": "^2.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^7.0.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "prettier": "^2.0.5",
+    "serverless": "^1.70.1",
+    "serverless-offline": "^6.1.5",
+    "serverless-webpack": "^5.3.2",
+    "ts-loader": "^7.0.4",
+    "typescript": "^3.8.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-node-externals": "^1.7.2"
+  }
+}

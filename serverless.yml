@@ -1,0 +1,46 @@
+service: email
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'prod'}
+  timeout: 30
+  region: eu-west-1
+  vpc:
+    securityGroupIds:
+      - ${ssm:/API/SecurityGroup}
+    subnetIds:
+      - ${ssm:/API/Subnet}
+
+functions:
+  email:
+    handler: src/handler.email
+    environment:
+      stage: ${self:provider.stage}
+      BUCKET_NAME: ${ssm:/API/ProfilePictures/BucketName}
+      BUCKET_REGION: ${ssm:/API/ProfilePictures/BucketRegion}
+      AWS_KEY_ID: ${ssm:/email/AwsKeyId}
+      AWS_KEY_SECRET: ${ssm:/email/AwsKeySecret~true}
+
+      DB_HOST: ${ssm:/DB/Host}
+      DB_PORT: ${ssm:/DB/Port}
+      DB_NAME: ${ssm:/DB/Name}
+      DB_USER: ${ssm:/email/DB/User}
+      DB_PASSWORD: ${ssm:/email/DB/Password~true}
+
+    events:
+      - http:
+          method: POST
+          path: /email
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 9000
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    packager: 'npm'
+    includeModules: true
