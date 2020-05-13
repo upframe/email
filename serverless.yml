@@ -17,10 +17,9 @@ functions:
     handler: src/handler.email
     environment:
       stage: ${self:provider.stage}
-      BUCKET_NAME: ${ssm:/API/ProfilePictures/BucketName}
-      BUCKET_REGION: ${ssm:/API/ProfilePictures/BucketRegion}
       AWS_KEY_ID: ${ssm:/email/AwsKeyId}
       AWS_KEY_SECRET: ${ssm:/email/AwsKeySecret~true}
+      MAILGUN_KEY: ${ssm:/API/MailgunKey~true}
       DB_HOST: ${ssm:/DB/Host}
       DB_PORT: ${ssm:/DB/Port}
       DB_NAME: ${ssm:/DB/Name}
