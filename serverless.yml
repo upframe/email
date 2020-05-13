@@ -15,28 +15,33 @@ provider:
 functions:
   email:
     handler: src/handler.email
+    events:
+      - sns:
+          arn: ${ssm:/email/SNS/arn}
     environment:
       stage: ${self:provider.stage}
       AWS_KEY_ID: ${ssm:/email/AwsKeyId}
       AWS_KEY_SECRET: ${ssm:/email/AwsKeySecret~true}
       MAILGUN_KEY: ${ssm:/API/MailgunKey~true}
       DB_HOST: ${ssm:/DB/Host}
+      DB_PROXY_HOST: ${ssm:/DB/Proxy/Host}
       DB_PORT: ${ssm:/DB/Port}
       DB_NAME: ${ssm:/DB/Name}
       DB_USER: ${ssm:/email/DB/User}
       DB_PASSWORD: ${ssm:/email/DB/Password~true}
 
-    events:
-      - sns: arn:aws:sns:eu-west-1:312104790015:emails
-
 plugins:
   - serverless-webpack
   - serverless-offline
+  - serverless-offline-sns
 
 custom:
   serverless-offline:
-    httpPort: 9000
+    httpPort: 4000
   webpack:
     webpackConfig: 'webpack.config.js'
     packager: 'npm'
     includeModules: true
+  serverless-offline-sns:
+    port: 4002
+    debug: true

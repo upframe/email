@@ -1,7 +1,8 @@
 import logger from './logger'
 import send from './send'
 
-export const email = (event) => {
+export const email = async (event) => {
+  if (process.env.IS_OFFLINE) event = { Records: [{ Sns: event }] }
   const records = event.Records ?? []
   records.forEach(({ Sns }) => {
     try {
@@ -16,7 +17,7 @@ export const email = (event) => {
 }
 
 const actions = {
-  SEND_EMAIL({ template }) {
-    send(template)
+  SEND_EMAIL(info) {
+    send(info)
   },
 }
