@@ -1,3 +1,3 @@
-export const email = (_, __, callback) => {
-  callback(null, 200)
+export const email = (event) => {
+  console.log(event.Records[0].Sns.Message)
 }
