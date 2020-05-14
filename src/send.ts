@@ -1,33 +1,32 @@
-import templates from './templates'
-import logger from './logger'
-import { s3 } from './utils/aws'
-import getContext from './context'
-import * as compile from './compile'
+import loadTemplate from './build/load'
+import compile from './build/compile'
+import _mailgun from 'mailgun-js'
+import logger from './utils/logger'
+
+const mailgun = _mailgun({
+  domain: 'upframe.io',
+  apiKey: process.env.MAILGUN_KEY,
+})
 
 export default async function ({ template, ...fields }: any) {
-  if (!(template in templates))
-    return logger.error('unknown email template', { template })
+  await loadTemplate(template)
+  const { html, context } = await compile(template, fields)
 
-  let { markup } = templates[template]
-  if (!markup)
-    try {
-      markup = await getTemplate(templates[template].file)
-      templates[template].markup = markup
-    } catch (error) {
-      logger.error("couldn't download template", { template, error })
-    }
+  if (typeof context.to?.email !== 'string')
+    throw new Error('unknown receiver address')
 
-  const context = await getContext(template, fields)
+  const email = {
+    from: 'Upframe team@upframe.io',
+    to: [context.to?.name, context.to.email].filter(Boolean).join(' '),
+    subject: context.subject,
+    html,
+  }
 
-  const compiled = compile[templates[template].type.toLowerCase()](
-    markup,
-    context
-  )
-}
-
-async function getTemplate(name: string) {
-  const { Body } = await s3
-    .getObject({ Bucket: 'upframe-email-templates', Key: name })
-    .promise()
-  return Body.toString()
+  try {
+    const msg = await mailgun.messages().send(email)
+    logger.info(msg)
+  } catch (error) {
+    logger.error('failed to send email', { error })
+    throw error
+  }
 }

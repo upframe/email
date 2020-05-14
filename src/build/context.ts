@@ -1,4 +1,4 @@
-import connectDB from './db'
+import connectDB from '../utils/db'
 
 export default async function (template, fields) {
   const db = connectDB()
@@ -14,9 +14,15 @@ export default async function (template, fields) {
         .first()
       context = {
         handle: data.handle,
-        name: data.handle,
+        name: data.name,
         token: data.id,
         ...(data.role === 'mentor' && { mentor: true }),
+        to: {
+          email: data.email,
+        },
+        subject: `${data.name} invited you to join Upframe${
+          data.role === 'mentor' ? ' as a mentor' : ''
+        }`,
       }
       break
     }

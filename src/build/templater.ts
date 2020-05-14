@@ -1,13 +1,8 @@
-import mustache from 'mustache'
-import compileMJML from 'mjml'
+import { render } from 'mustache'
 
-export const mjml = (template: string, context: object): string => {
-  const { html, errors } = compileMJML(mustache.render(template, context))
-  if (!html || errors.length) throw new Error(errors)
-  return html
-}
+export const mustache = render
 
-export const html = (template: string, context: object): string => {
+export const custom = (template: string, context: object): string => {
   // eslint-disable-next-line no-extra-semi
   ;[...template.matchAll(/<!-- ([A-Z]+)-START -->/g)].forEach(
     ({

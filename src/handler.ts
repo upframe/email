@@ -1,4 +1,4 @@
-import logger from './logger'
+import logger from './utils/logger'
 import send from './send'
 
 export const email = async (event) => {
