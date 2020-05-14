@@ -4,7 +4,7 @@ import templates from '../templates'
 import compileMJML from 'mjml'
 
 export default async function compileTemplate(
-  templateName: string,
+  templateName: keyof typeof templates,
   fields: any
 ): Promise<{ html: string; context: any }> {
   const context = await getContext(templateName, fields)
