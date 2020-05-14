@@ -44,4 +44,4 @@ custom:
     includeModules: true
   serverless-offline-sns:
     port: 4002
-    debug: true
+    debug: false

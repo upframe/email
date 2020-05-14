@@ -30,7 +30,7 @@ export const custom = (template: string, context: object): string => {
     }
   )
   Object.entries(context)
-    .filter(([, v]) => v)
+    .filter(([k, v]) => v && /^[A-Z0-9+]+$/.test(k))
     .forEach(([k, v]) => {
       template = template.replace(new RegExp(k, 'g'), v as string)
     })

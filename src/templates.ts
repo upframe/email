@@ -11,6 +11,18 @@ const templates = {
     type: 'MJML',
     file: 'reset-email.mjml',
   },
+  MESSAGE: {
+    type: 'HTML',
+    file: 'message.html',
+  },
+  SLOT_REQUEST: {
+    type: 'HTML',
+    file: 'mentorRequest.html',
+  },
+  SLOT_CONFIRM: {
+    type: 'HTML',
+    file: 'meetupConfirmation.html',
+  },
 }
 
 export default templates as { [k in keyof typeof templates]: Template }
