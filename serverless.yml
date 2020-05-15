@@ -37,7 +37,6 @@ plugins:
   - serverless-webpack
   - serverless-offline
   - serverless-offline-sns
-  - serverless-domain-manager
 
 custom:
   serverless-offline:
@@ -50,10 +49,3 @@ custom:
   serverless-offline-sns:
     port: 4002
     debug: false
-  customDomain:
-    RestApiId:
-      Ref: ApiGatewayRestApi
-    domainName: email.upframe.io
-    endpointType: 'regional'
-    stage: ${opt:stage}
-    createRoute53Record: false

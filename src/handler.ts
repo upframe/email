@@ -19,11 +19,11 @@ export const email = async (event) => {
     })
   )
 
-  const { event: hook } = event.pathParameters
+  const { event: hook } = event.pathParameters ?? {}
   if (!hook) return
   if (!(hook in hooks)) {
     logger.warn('unknown webhook called', { hook })
-    return { statusCode: 404 }
+    return { statusCode: 406 }
   }
   await hooks[hook](event)
   return { statusCode: 200 }
@@ -36,7 +36,7 @@ const actions = {
 }
 
 const hooks = {
-  delivered(event) {
+  async delivered(event) {
     logger.info('webhook called', { hook: 'delivered', event })
   },
 }
