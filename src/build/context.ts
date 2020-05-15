@@ -1,9 +1,10 @@
-import connectDB from '../utils/db'
 import templates from '../templates'
 
-export default async function (template: keyof typeof templates, fields: any) {
-  const db = connectDB()
-
+export default async function (
+  template: keyof typeof templates,
+  fields: any,
+  db: ReturnType<typeof import('../utils/db').default>
+) {
   let context = {}
   switch (template) {
     case 'INVITE': {
@@ -41,12 +42,13 @@ export default async function (template: keyof typeof templates, fields: any) {
           email: data.email,
         },
         subject: 'Password reset link',
+        userId: data.id,
       }
       break
     }
     case 'RESET_EMAIL': {
       const data = await db('tokens')
-        .select('tokens.*', 'users.name', 'users.handle')
+        .select('tokens.*', 'users.id', 'users.name', 'users.handle')
         .leftJoin('users', 'users.id', 'tokens.subject')
         .where({ token: fields.token })
         .first()
@@ -60,6 +62,7 @@ export default async function (template: keyof typeof templates, fields: any) {
           email: data.payload,
         },
         subject: 'Confirm your new email address',
+        userId: data.id,
       }
       break
     }
@@ -87,6 +90,7 @@ export default async function (template: keyof typeof templates, fields: any) {
           name: receiver.name,
           email: receiver.email,
         },
+        userId: fields.receiver,
       }
 
       break
@@ -100,6 +104,7 @@ export default async function (template: keyof typeof templates, fields: any) {
             'time_slots.*',
             'users.name',
             'users.email',
+            'users.id as user_id',
             'meetups.message',
             'meetups.location'
           )
@@ -132,6 +137,7 @@ export default async function (template: keyof typeof templates, fields: any) {
           name: data.name,
           email: data.email,
         },
+        userId: data.user_id,
       }
       break
     }
@@ -169,6 +175,7 @@ export default async function (template: keyof typeof templates, fields: any) {
           name: mentee.name,
           email: mentee.email,
         },
+        userId: mentee.id,
       }
       break
     }
@@ -176,6 +183,5 @@ export default async function (template: keyof typeof templates, fields: any) {
       throw Error(`can't provide context for ${template} template`)
   }
 
-  await db.destroy()
   return context
 }

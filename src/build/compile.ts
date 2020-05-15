@@ -5,9 +5,10 @@ import compileMJML from 'mjml'
 
 export default async function compileTemplate(
   templateName: keyof typeof templates,
-  fields: any
+  fields: any,
+  db: ReturnType<typeof import('../utils/db').default>
 ): Promise<{ html: string; context: any }> {
-  const context = await getContext(templateName, fields)
+  const context = await getContext(templateName, fields, db)
 
   const { markup, type } = templates[templateName]
 
