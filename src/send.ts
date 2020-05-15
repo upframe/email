@@ -22,6 +22,7 @@ export default async function (
 
   try {
     const msg = await mailgun.messages().send(email)
+    logger.info(msg)
     const id = msg.id.replace(/^<?([\w.@]+)>?$/, '$1')
     await db('emails').insert({
       id,
@@ -31,7 +32,6 @@ export default async function (
       to_email: context.to.email,
     })
     await db('email_events').insert({ id, event: 'queued' })
-    logger.info(msg)
   } catch (error) {
     logger.error('failed to send email', { error })
     throw error

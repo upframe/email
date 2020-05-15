@@ -34,14 +34,21 @@ export const email = async (event) => {
       }
       const body = JSON.parse(event.body)
       if (
-        !mailgun.validateWebhook(body.timestamp, body.token, body.signature)
+        !mailgun.validateWebhook(
+          body.signature.timestamp,
+          body.signature.token,
+          body.signature.signature
+        )
       ) {
         logger.error('illegal webhook invocation', body)
         return 401
       }
-      await hooks[hook](event)
+      await hooks[hook](body)
       await db('email_events').insert({
-        id: body['message-id'].replace(/^<?([\w.@]+)>?$/, '$1'),
+        id: body['event-data'].message.headers['message-id'].replace(
+          /^<?([\w.@]+)>?$/,
+          '$1'
+        ),
         event: hook,
       })
       return 200
