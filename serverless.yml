@@ -18,6 +18,9 @@ functions:
     events:
       - sns:
           arn: ${ssm:/email/SNS/arn}
+      - http:
+          path: /hooks/{event}
+          method: post
     environment:
       stage: ${self:provider.stage}
       AWS_KEY_ID: ${ssm:/email/AwsKeyId}
@@ -34,10 +37,12 @@ plugins:
   - serverless-webpack
   - serverless-offline
   - serverless-offline-sns
+  - serverless-domain-manager
 
 custom:
   serverless-offline:
     httpPort: 4000
+    noPrependStageInUrl: true
   webpack:
     webpackConfig: 'webpack.config.js'
     packager: 'npm'
@@ -45,3 +50,10 @@ custom:
   serverless-offline-sns:
     port: 4002
     debug: false
+  customDomain:
+    RestApiId:
+      Ref: ApiGatewayRestApi
+    domainName: email.upframe.io
+    endpointType: 'regional'
+    stage: ${opt:stage}
+    createRoute53Record: false
