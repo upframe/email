@@ -32,6 +32,9 @@ export default async function (
       to_email: context.to.email,
     })
     await db('email_events').insert({ id, event: 'queued' })
+
+    if (template === 'INVITE')
+      await db('invites').update('email_id', id).where('id', '=', context.token)
   } catch (error) {
     logger.error('failed to send email', { error })
     throw error
