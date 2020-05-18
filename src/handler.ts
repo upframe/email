@@ -44,13 +44,22 @@ export const email = async (event) => {
         return 401
       }
       await hooks[hook](body)
-      await db('email_events').insert({
-        id: body['event-data'].message.headers['message-id'].replace(
-          /^<?([\w.@]+)>?$/,
-          '$1'
-        ),
-        event: hook,
-      })
+      try {
+        await db('email_events').insert({
+          id: body['event-data'].message.headers['message-id'].replace(
+            /^<?([\w.@]+)>?$/,
+            '$1'
+          ),
+          event: hook,
+        })
+      } catch (error) {
+        if (error.constraint !== 'email_events_id_foreign') throw error
+        logger.warn(
+          "can't persist email event because email id is not in DB",
+          body
+        )
+        return 406
+      }
       return 200
     })()
   } finally {
