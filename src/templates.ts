@@ -12,8 +12,8 @@ const templates = {
     file: 'reset-email.mjml',
   },
   MESSAGE: {
-    type: 'HTML',
-    file: 'message.html',
+    type: 'MJML',
+    file: 'message.mjml',
   },
   SLOT_REQUEST: {
     type: 'HTML',

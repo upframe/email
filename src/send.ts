@@ -17,6 +17,7 @@ export default async function (
     from: 'Upframe team@upframe.io',
     to: [context.to?.name, context.to.email].filter(Boolean).join(' '),
     subject: context.subject,
+    ...(context.replyTo && { 'h:Reply-To': context.replyTo }),
     html,
   }
 

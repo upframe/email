@@ -81,16 +81,19 @@ export default async function (
       const subject = `${sender.name} sent you a message`
 
       context = {
-        MENTOR: receiver.name.split(' ')[0],
-        USER: sender.name,
-        MESSAGE: fields.message,
-        EMAIL: `${sender.email}?subject=Re: ${subject}&Body=\n\n---\n${fields.message}`,
+        message: fields.message,
+        replyTo: sender.email,
+        ReplyLink: `mailto:${sender.email}?subject=Re: ${subject}&Body=\n\n---\n${fields.message}`,
         subject,
         to: {
-          name: receiver.name,
+          name: receiver.name.split(' ')[0],
           email: receiver.email,
         },
-        userId: fields.receiver,
+        from: {
+          name: sender.name,
+          handle: sender.handle,
+          email: sender.email,
+        },
       }
 
       break
