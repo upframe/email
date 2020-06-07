@@ -29,9 +29,11 @@
     "knex": "^0.21.1",
     "mailgun-js": "^0.22.0",
     "mjml": "^4.6.3",
+    "moment-timezone": "^0.5.31",
     "mustache": "^4.0.1",
     "pg": "^8.1.0",
     "source-map-support": "^0.5.19",
+    "spacetime-informal": "^0.3.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {

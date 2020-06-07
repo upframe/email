@@ -1,4 +1,6 @@
 import templates from '../templates'
+import moment from 'moment-timezone'
+import st from 'spacetime-informal'
 
 export default async function (
   template: keyof typeof templates,
@@ -94,53 +96,69 @@ export default async function (
           handle: sender.handle,
           email: sender.email,
         },
+        userId: receiver.id,
       }
 
       break
     }
     case 'SLOT_REQUEST': {
-      const [data, requester] = await Promise.all([
-        db('time_slots')
-          .leftJoin('users', 'users.id', 'time_slots.mentor_id')
-          .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
-          .select(
-            'time_slots.*',
-            'users.name',
-            'users.email',
-            'users.id as user_id',
-            'meetups.message',
-            'meetups.location'
-          )
-          .where('time_slots.id', '=', fields.slot)
-          .first(),
-        db('users').where({ id: fields.requester }).first(),
+      const meetup = await db('time_slots')
+        .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
+        .where({ id: fields.slot })
+        .select('time_slots.*', 'meetups.message', 'meetups.location')
+        .first()
+      const data = await db('users').whereIn('id', [
+        meetup.mentor_id,
+        fields.requester,
       ])
+      const [mentee] = data.splice(
+        data.findIndex(({ id }) => id === fields.requester),
+        1
+      )
+      const [mentor] = data
+
+      const tzIana = mentor.timezone ?? 'Europe/Berlin'
+
+      const date = moment(meetup.start).tz(tzIana)
+      meetup.time = `${date.format('dddd')}, ${date.format(
+        'MMMM D'
+      )} at ${date.format('h:mm a')}`.replace(/(\w)m$/, '$1.m.')
+
+      const inf = st.display(tzIana)
+
+      const zone = moment.tz(tzIana)
+
+      let informal
+      if (inf.standard) {
+        const standard = {
+          name: inf.standard.name,
+          abbr: inf.standard.abbrev,
+        }
+        const dst = !inf.daylight
+          ? null
+          : {
+              name: inf.daylight.name,
+              abbr: inf.daylight.abbrev,
+            }
+
+        informal = zone.isDST() ? dst : standard
+      } else {
+        informal = {
+          abbr: 'UTC ' + `+${zone.utcOffset() / 60}`.replace(/^\+-/, '-'),
+          name: tzIana,
+        }
+      }
 
       context = {
-        MENTOR: data.name,
-        USER: requester.name,
-        EMAIL: requester.email,
-        MESSAGE: data.message,
-        LOCATION: data.location,
-        MID: data.id,
-        DATE: new Date(data.start).toLocaleString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          timeZone: 'Europe/Berlin',
-        }),
-        TIME: new Date(data.start).toLocaleString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: false,
-          timeZone: 'Europe/Berlin',
-        }),
-        subject: `${requester.name} invited you to a meetup`,
-        to: {
-          name: data.name,
-          email: data.email,
-        },
-        userId: data.user_id,
+        replyTo: mentee.email,
+        subject: `${mentee.name} invited you to a meetup`,
+        to: mentor,
+        userId: mentor.id,
+        mentee,
+        mentor,
+        message: meetup.message,
+        meetup,
+        tz: informal,
       }
       break
     }
@@ -156,6 +174,7 @@ export default async function (
       ])
 
       context = {
+        replyTo: mentor.email,
         MENTOR: mentor.name,
         USER: mentee.name,
         MESSAGE: data.message,

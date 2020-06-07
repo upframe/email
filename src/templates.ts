@@ -16,8 +16,8 @@ const templates = {
     file: 'message.mjml',
   },
   SLOT_REQUEST: {
-    type: 'HTML',
-    file: 'mentorRequest.html',
+    type: 'MJML',
+    file: 'meetup-request.mjml',
   },
   SLOT_CONFIRM: {
     type: 'HTML',
