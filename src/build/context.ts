@@ -147,6 +147,7 @@ export default async function (
       meetup.time = formatDateTime(meetup.start, tzIana)
 
       context = {
+        replyTo: mentor.email,
         subject: `${mentor.name} accepted to meetup with you`,
         to: {
           name: mentee.name,
