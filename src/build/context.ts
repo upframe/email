@@ -1,6 +1,5 @@
 import templates from '../templates'
-import moment from 'moment-timezone'
-import st from 'spacetime-informal'
+import { formatDateTime, tzInfo } from '../utils/time'
 
 export default async function (
   template: keyof typeof templates,
@@ -119,35 +118,7 @@ export default async function (
 
       const tzIana = mentor.timezone ?? 'Europe/Berlin'
 
-      const date = moment(meetup.start).tz(tzIana)
-      meetup.time = `${date.format('dddd')}, ${date.format(
-        'MMMM D'
-      )} at ${date.format('h:mm a')}`.replace(/(\w)m$/, '$1.m.')
-
-      const inf = st.display(tzIana)
-
-      const zone = moment.tz(tzIana)
-
-      let informal
-      if (inf.standard) {
-        const standard = {
-          name: inf.standard.name,
-          abbr: inf.standard.abbrev,
-        }
-        const dst = !inf.daylight
-          ? null
-          : {
-              name: inf.daylight.name,
-              abbr: inf.daylight.abbrev,
-            }
-
-        informal = zone.isDST() ? dst : standard
-      } else {
-        informal = {
-          abbr: 'UTC ' + `+${zone.utcOffset() / 60}`.replace(/^\+-/, '-'),
-          name: tzIana,
-        }
-      }
+      meetup.time = formatDateTime(meetup.start, tzIana)
 
       context = {
         replyTo: mentee.email,
@@ -158,46 +129,35 @@ export default async function (
         mentor,
         message: meetup.message,
         meetup,
-        tz: informal,
+        tz: tzInfo(tzIana),
       }
       break
     }
     case 'SLOT_CONFIRM': {
-      const data = await db('time_slots')
+      const meetup = await db('time_slots')
         .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
-        .where('time_slots.id', '=', fields.slot)
+        .where({ id: fields.slot })
         .first()
-
       const [mentor, mentee] = await Promise.all([
-        db('users').where({ id: data.mentor_id }).first(),
-        db('users').where({ id: data.mentee_id }).first(),
+        db('users').where({ id: meetup.mentor_id }).first(),
+        db('users').where({ id: meetup.mentee_id }).first(),
       ])
 
+      const tzIana = mentee.timezone ?? 'Europe/Berlin'
+      meetup.time = formatDateTime(meetup.start, tzIana)
+
       context = {
-        replyTo: mentor.email,
-        MENTOR: mentor.name,
-        USER: mentee.name,
-        MESSAGE: data.message,
-        KEYCODE: mentor.handle,
-        LOCATION: data.location,
-        DATE: new Date(data.start).toLocaleString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          timeZone: 'Europe/Berlin',
-        }),
-        TIME: new Date(data.start).toLocaleString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: false,
-          timeZone: 'Europe/Berlin',
-        }),
         subject: `${mentor.name} accepted to meetup with you`,
         to: {
           name: mentee.name,
           email: mentee.email,
         },
         userId: mentee.id,
+        mentee,
+        mentor,
+        message: meetup.message,
+        meetup,
+        tz: tzInfo(tzIana),
       }
       break
     }

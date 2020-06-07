@@ -20,8 +20,8 @@ const templates = {
     file: 'meetup-request.mjml',
   },
   SLOT_CONFIRM: {
-    type: 'HTML',
-    file: 'meetupConfirmation.html',
+    type: 'MJML',
+    file: 'meetup-confirm.mjml',
   },
 }
 
