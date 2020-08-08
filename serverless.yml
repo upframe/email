@@ -11,6 +11,12 @@ provider:
       - ${ssm:/API/SecurityGroup}
     subnetIds:
       - ${ssm:/API/Subnet}
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'sns:Publish'
+      Resource:
+        - ${ssm:/email/SNS/arn}
 
 functions:
   email:
@@ -33,10 +39,34 @@ functions:
       DB_USER: ${ssm:/email/DB/User}
       DB_PASSWORD: ${ssm:/email/DB/Password~true}
 
+stepFunctions:
+  stateMachines:
+    bufferThreadMsg:
+      name: MsgBufferStateMachine
+      definition:
+        StartAt: Buffer
+        States:
+          Buffer:
+            Type: Wait
+            Seconds: 3000
+            Next: Send
+          Send:
+            Type: Task
+            Resource: arn:aws:states:::sns:publish
+            Parameters:
+              TopicArn: ${ssm:/email/SNS/arn}
+              Message:
+                Action: 'ThreadMsgs'
+                ctx:
+                  user.$: $.user
+                  thread.$: $.thread
+            End: true
+
 plugins:
   - serverless-webpack
   - serverless-offline
   - serverless-offline-sns
+  - serverless-step-functions
 
 custom:
   serverless-offline:

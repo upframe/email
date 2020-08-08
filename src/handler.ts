@@ -18,7 +18,10 @@ export const email = async (event) => {
           try {
             const { action, ...rest } = JSON.parse(event.Records[0].Sns.Message)
             if (typeof action !== 'string' || !(action in actions))
-              return logger.info(`unknown action ${action}, ignoring message`)
+              return logger.info(`unknown action ${action}, ignoring message`, {
+                action,
+                ...rest,
+              })
             return actions[action](rest, db)
           } catch (e) {
             logger.warn("couldn't parse message", { message: Sns?.Message })
