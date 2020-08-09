@@ -19,7 +19,7 @@ export default async function compileTemplate(
 
   const { html, errors } =
     type === 'MJML'
-      ? compileMJML(filledIn, { minify: true })
+      ? compileMJML(filledIn, { minify: !filledIn.includes('<mj-raw>') })
       : { html: filledIn, errors: [] }
   if (!html || errors.length) throw new Error(errors)
 

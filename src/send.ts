@@ -2,6 +2,7 @@ import loadTemplate from './build/load'
 import compile from './build/compile'
 import logger from './utils/logger'
 import mailgun from './utils/mailgun'
+import { ddb } from './utils/aws'
 
 export default async function (
   { template, ...fields }: any,
@@ -36,6 +37,20 @@ export default async function (
 
     if (template === 'INVITE')
       await db('invites').update('email_id', id).where('id', '=', context.token)
+
+    if (template === 'THREAD_MSGS') {
+      await ddb
+        .update({
+          TableName: 'connections',
+          Key: { pk: `USER|${fields.user}`, sk: 'meta' },
+          UpdateExpression: `REMOVE #arn, #pending`,
+          ExpressionAttributeNames: {
+            '#arn': `mail_arn_channel_${fields.channel}`,
+            '#pending': `mail_pending_channel_${fields.channel}`,
+          },
+        })
+        .promise()
+    }
   } catch (error) {
     logger.error('failed to send email', { error })
     throw error

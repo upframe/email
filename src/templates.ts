@@ -23,6 +23,10 @@ const templates = {
     type: 'MJML',
     file: 'meetup-confirm.mjml',
   },
+  THREAD_MSGS: {
+    type: 'MJML',
+    file: 'channel-msgs.mjml',
+  },
 }
 
 export default templates as { [k in keyof typeof templates]: Template }

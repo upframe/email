@@ -1,5 +1,9 @@
 import templates from '../templates'
-import { formatDateTime, tzInfo } from '../utils/time'
+import { formatDateTime, formatTime, tzInfo } from '../utils/time'
+import { ddb } from '../utils/aws'
+const markdownIt = require('markdown-it')
+
+const md = new markdownIt()
 
 export default async function (
   template: keyof typeof templates,
@@ -29,6 +33,7 @@ export default async function (
       }
       break
     }
+
     case 'RESET_PASSWORD': {
       const data = await db('tokens')
         .leftJoin('users', 'users.id', 'tokens.subject')
@@ -47,6 +52,7 @@ export default async function (
       }
       break
     }
+
     case 'RESET_EMAIL': {
       const data = await db('tokens')
         .select('tokens.*', 'users.id', 'users.name', 'users.handle')
@@ -67,6 +73,7 @@ export default async function (
       }
       break
     }
+
     case 'MESSAGE': {
       const data = await db('users').whereIn('id', [
         fields.sender,
@@ -100,6 +107,7 @@ export default async function (
 
       break
     }
+
     case 'SLOT_REQUEST': {
       const meetup = await db('time_slots')
         .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
@@ -133,6 +141,7 @@ export default async function (
       }
       break
     }
+
     case 'SLOT_CONFIRM': {
       const meetup = await db('time_slots')
         .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
@@ -162,6 +171,120 @@ export default async function (
       }
       break
     }
+
+    case 'THREAD_MSGS': {
+      const { Item: ddbUser } = await ddb
+        .get({
+          TableName: 'connections',
+          Key: { pk: `USER|${fields.user}`, sk: 'meta' },
+        })
+        .promise()
+
+      if (!ddbUser.subEmail)
+        throw Error(`user ${fields.user} doesn't want email notifications`)
+
+      const pending = JSON.parse(
+        JSON.stringify(ddbUser[`mail_pending_channel_${fields.channel}`])
+      )
+
+      if (!pending?.length) throw Error('no pending messages')
+
+      const {
+        Responses: { conversations: msgs },
+      } = await ddb
+        .batchGet({
+          RequestItems: {
+            conversations: {
+              Keys: pending.map(id => ({
+                pk: `CHANNEL|${fields.channel}`,
+                sk: `MSG|${id}`,
+              })),
+            },
+          },
+        })
+        .promise()
+
+      const userIds = Array.from(
+        new Set([fields.user, ...msgs.map(({ author }) => author)])
+      )
+      const userInfo = await db('users')
+        .select(
+          'users.id',
+          'users.handle',
+          'users.name',
+          'users.display_name',
+          'users.timezone',
+          'users.email',
+          'profile_pictures.*'
+        )
+        .leftJoin(
+          'profile_pictures',
+          'profile_pictures.user_id',
+          '=',
+          'users.id'
+        )
+        .whereIn('id', userIds)
+
+      const users = userIds.map(id => userInfo.find(user => user.id === id))
+      users.forEach(user => {
+        user.photos = userInfo
+          .filter(({ id, type }) => id === user.id && type === 'jpeg')
+          .sort((a, b) => a.size - b.size)
+      })
+      users.forEach(user => {
+        user.photo =
+          user.photos[0]?.url ?? process.env.BUCKET_URL + 'default.png'
+      })
+
+      const messages = msgs.sort((a, b) => a.time - b.time)
+
+      for (const msg of messages) {
+        msg.content = [md.render(msg.content)]
+      }
+
+      for (let i = 0; i < messages.length - 1; i++) {
+        if (messages[i].author !== messages[i + 1].author) continue
+        messages[i].content.push(...messages.splice(i + 1, 1)[0].content)
+        i--
+      }
+
+      const user = users.find(({ id }) => id === fields.user)
+      const tz = user.timezone ?? 'Europe/Berlin'
+      for (const msg of messages) {
+        msg.author = users.find(({ id }) => id === msg.author)
+        const time = msg.time
+        msg.time = formatTime(time, tz)
+        msg.fulltime = `${formatDateTime(time, tz)} ${tzInfo(tz).abbr}`
+      }
+
+      const { Item: channel } = await ddb
+        .get({
+          TableName: 'conversations',
+          Key: { pk: `CHANNEL|${fields.channel}`, sk: 'meta' },
+        })
+        .promise()
+
+      const newStr = `You have ${msgs.length} new message${
+        msgs.length > 1 ? 's' : ''
+      }`
+
+      context = {
+        to: { ...user, displayName: user.display_name },
+        userId: user.id,
+        subject: newStr + ' on Upframe',
+        channel: {
+          id: fields.channel,
+        },
+        conversation: {
+          id: channel.conversation,
+        },
+        messages,
+        newStr,
+      }
+
+      break
+    }
+
     default:
       throw Error(`can't provide context for ${template} template`)
   }

@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs12.x
   stage: ${opt:stage, 'prod'}
-  timeout: 30
+  timeout: 15
   region: eu-west-1
   vpc:
     securityGroupIds:
@@ -17,6 +17,12 @@ provider:
         - 'sns:Publish'
       Resource:
         - ${ssm:/email/SNS/arn}
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - ${ssm:/dynamodb/conversations/arn}
+        - ${ssm:/dynamodb/connections/arn}
 
 functions:
   email:
@@ -24,6 +30,7 @@ functions:
     events:
       - sns:
           arn: ${ssm:/email/SNS/arn}
+          maximumRetryAttempts: 0
       - http:
           path: /hooks/{event}
           method: post
@@ -38,6 +45,7 @@ functions:
       DB_NAME: ${ssm:/DB/Name}
       DB_USER: ${ssm:/email/DB/User}
       DB_PASSWORD: ${ssm:/email/DB/Password~true}
+      BUCKET_URL: ${ssm:/API/ProfilePictures/BucketUrl}
 
 stepFunctions:
   stateMachines:
@@ -48,7 +56,7 @@ stepFunctions:
         States:
           Buffer:
             Type: Wait
-            Seconds: 3000
+            Seconds: 240
             Next: Send
           Send:
             Type: Task
@@ -56,10 +64,10 @@ stepFunctions:
             Parameters:
               TopicArn: ${ssm:/email/SNS/arn}
               Message:
-                Action: 'ThreadMsgs'
-                ctx:
-                  user.$: $.user
-                  thread.$: $.thread
+                action: SEND_EMAIL
+                template: THREAD_MSGS
+                user.$: $.user
+                channel.$: $.channel
             End: true
 
 plugins:

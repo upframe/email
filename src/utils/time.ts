@@ -8,6 +8,11 @@ export const formatDateTime = (dt: any, timezone: string) => {
   )}`.replace(/(\w)m$/, '$1.m.')
 }
 
+export const formatTime = (dt: any, timezone: string) => {
+  const date = moment(dt).tz(timezone)
+  return date.format('h:mm a').replace(/(\w)m$/, '$1.m.')
+}
+
 export const tzInfo = (timezone: string): TzInfo => {
   const inf = st.display(timezone)
 
