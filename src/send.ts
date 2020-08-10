@@ -15,7 +15,9 @@ export default async function (
     throw new Error('unknown receiver address')
 
   const email = {
-    from: 'Upframe team@upframe.io',
+    from: `${context.sender.name ?? 'Upframe'} ${
+      context.sender.email ?? 'team@upframe.io'
+    }`,
     to: [context.to?.name, context.to.email].filter(Boolean).join(' '),
     subject: context.subject,
     ...(context.replyTo && { 'h:Reply-To': context.replyTo }),

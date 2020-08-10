@@ -268,6 +268,8 @@ export default async function (
         msgs.length > 1 ? 's' : ''
       }`
 
+      const authors = users.filter(({ id }) => id !== fields.user)
+
       context = {
         to: { ...user, displayName: user.display_name },
         userId: user.id,
@@ -280,6 +282,10 @@ export default async function (
         },
         messages,
         newStr,
+        sender: {
+          name: authors.length === 1 ? authors[0].name : undefined,
+          email: 'notifications@upframe.io',
+        },
       }
 
       break
