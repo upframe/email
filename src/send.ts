@@ -3,6 +3,7 @@ import compile from './build/compile'
 import logger from './utils/logger'
 import { ddb } from './utils/aws'
 import sg from './utils/sendGrid'
+import token from './utils/token'
 
 export default async function (
   { template, ...fields }: any,
@@ -14,22 +15,31 @@ export default async function (
   if (typeof context.to?.email !== 'string')
     throw new Error('unknown receiver address')
 
-  const email = {
+  const msgId = context.unsubToken ?? token()
+  const to = {
+    email: context.to.email,
+    name: context.to.name,
+  }
+  const email: Parameters<typeof sg['send']>[0] = {
     from: {
       email: context.sender?.email ?? 'team@upframe.io',
       name: context.sender?.name ?? 'Upframe',
     },
-    to: {
-      email: context.to.email,
-      name: context.to.name,
-    },
+    to,
     subject: context.subject,
     replyTo: context.replyTo,
     html,
+    customArgs: { msgId },
+    ...(context.unsubToken && {
+      headers: {
+        'List-Unsubscribe': `<https://upframe.io/settings/notifications?unsubscribe=${context.unsubToken}>`,
+      },
+    }),
   }
 
   try {
-    const [msg] = await sg.send(email)
+    const [msg] = await sg.send({ ...email })
+    logger.info(msg)
     const id = msg.headers['x-message-id']
     await db('emails').insert({
       id,

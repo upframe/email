@@ -2,6 +2,7 @@ import templates from '../templates'
 import { formatDateTime, formatTime, tzInfo } from '../utils/time'
 import { ddb } from '../utils/aws'
 const markdownIt = require('markdown-it')
+import token from '../utils/token'
 
 const md = new markdownIt()
 
@@ -289,6 +290,8 @@ export default async function (
           name: authors.length === 1 ? authors[0].name : undefined,
           email: 'notifications@upframe.io',
         },
+        timestamp: new Date().toISOString(),
+        unsubToken: token(),
       }
 
       break
