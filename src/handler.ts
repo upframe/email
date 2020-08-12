@@ -1,7 +1,6 @@
 import logger from './utils/logger'
 import send from './send'
 import connectDB from './utils/db'
-import mailgun from './utils/mailgun'
 export { default as inbound } from './inbound'
 
 export const email = async event => {
@@ -37,16 +36,6 @@ export const email = async event => {
         return 406
       }
       const body = JSON.parse(event.body)
-      if (
-        !mailgun.validateWebhook(
-          body.signature.timestamp,
-          body.signature.token,
-          body.signature.signature
-        )
-      ) {
-        logger.error('illegal webhook invocation', body)
-        return 401
-      }
       await hooks[hook](body)
       try {
         await db('email_events').insert({
