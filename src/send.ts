@@ -40,18 +40,19 @@ export default async function (
   try {
     const [msg] = await sg.send({ ...email })
     logger.info(msg)
-    const id = msg.headers['x-message-id']
     await db('emails').insert({
-      id,
+      id: msgId,
       template,
       subject: context.subject,
       to_user: context.userId,
       to_email: context.to.email,
     })
-    await db('email_events').insert({ id, event: 'queued' })
+    await db('email_events').insert({ id: msgId, event: 'queued' })
 
     if (template === 'INVITE')
-      await db('invites').update('email_id', id).where('id', '=', context.token)
+      await db('invites')
+        .update('email_id', msgId)
+        .where('id', '=', context.token)
 
     if (template === 'THREAD_MSGS') {
       await ddb
