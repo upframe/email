@@ -271,7 +271,10 @@ export default async function (
       const authors = users.filter(({ id }) => id !== fields.user)
 
       context = {
-        to: { ...user, displayName: user.display_name },
+        to: {
+          ...user,
+          displayName: user.display_name ?? user.name.split(' ')[0],
+        },
         userId: user.id,
         subject: newStr + ' on Upframe',
         channel: {

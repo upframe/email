@@ -46,6 +46,12 @@ functions:
       DB_USER: ${ssm:/email/DB/User}
       DB_PASSWORD: ${ssm:/email/DB/Password~true}
       BUCKET_URL: ${ssm:/API/ProfilePictures/BucketUrl}
+  inbound:
+    handler: src/handler.inbound
+    events:
+      - http:
+          path: /inbound
+          method: post
 
 stepFunctions:
   stateMachines:
@@ -75,6 +81,7 @@ plugins:
   - serverless-offline
   - serverless-offline-sns
   - serverless-step-functions
+  - serverless-apigw-binary
 
 custom:
   serverless-offline:
@@ -87,3 +94,6 @@ custom:
   serverless-offline-sns:
     port: 4002
     debug: false
+  apigwBinary:
+    types:
+      - '*/*'

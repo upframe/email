@@ -1,8 +1,8 @@
 import loadTemplate from './build/load'
 import compile from './build/compile'
 import logger from './utils/logger'
-import mailgun from './utils/mailgun'
 import { ddb } from './utils/aws'
+import sg from './utils/sendGrid'
 
 export default async function (
   { template, ...fields }: any,
@@ -15,19 +15,22 @@ export default async function (
     throw new Error('unknown receiver address')
 
   const email = {
-    from: `${context.sender.name ?? 'Upframe'} ${
-      context.sender.email ?? 'team@upframe.io'
-    }`,
-    to: [context.to?.name, context.to.email].filter(Boolean).join(' '),
+    from: {
+      email: context.sender.email ?? 'team@upframe.io',
+      name: context.sender.name ?? 'Upframe',
+    },
+    to: {
+      email: context.to.email,
+      name: context.to.name,
+    },
     subject: context.subject,
-    ...(context.replyTo && { 'h:Reply-To': context.replyTo }),
+    replyTo: context.replyTo,
     html,
   }
 
   try {
-    const msg = await mailgun.messages().send(email)
-    logger.info(msg)
-    const id = msg.id.replace(/^<?([\w.@]+)>?$/, '$1')
+    const [msg] = await sg.send(email)
+    const id = msg.headers['x-message-id']
     await db('emails').insert({
       id,
       template,

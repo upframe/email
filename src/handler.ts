@@ -2,8 +2,9 @@ import logger from './utils/logger'
 import send from './send'
 import connectDB from './utils/db'
 import mailgun from './utils/mailgun'
+export { default as inbound } from './inbound'
 
-export const email = async (event) => {
+export const email = async event => {
   if (process.env.IS_OFFLINE && event.Action === 'Publish')
     event = { Records: [{ Sns: event }] }
   const records = event.Records ?? []
