@@ -16,8 +16,8 @@ export default async function (
 
   const email = {
     from: {
-      email: context.sender.email ?? 'team@upframe.io',
-      name: context.sender.name ?? 'Upframe',
+      email: context.sender?.email ?? 'team@upframe.io',
+      name: context.sender?.name ?? 'Upframe',
     },
     to: {
       email: context.to.email,
