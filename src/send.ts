@@ -38,8 +38,7 @@ export default async function (
   }
 
   try {
-    const [msg] = await sg.send({ ...email })
-    logger.info(msg)
+    await sg.send({ ...email })
     await db('emails').insert({
       id: msgId,
       template,

@@ -52,6 +52,9 @@ functions:
       - http:
           path: /inbound
           method: post
+    environment:
+      EMAIL_SECRET: ${ssm:/email/secret~true}
+      API_URL: ${ssm:/email/API/endpoint}
 
 stepFunctions:
   stateMachines:
@@ -81,7 +84,6 @@ plugins:
   - serverless-offline
   - serverless-offline-sns
   - serverless-step-functions
-  - serverless-apigw-binary
 
 custom:
   serverless-offline:
@@ -94,6 +96,3 @@ custom:
   serverless-offline-sns:
     port: 4002
     debug: false
-  apigwBinary:
-    types:
-      - '*/*'

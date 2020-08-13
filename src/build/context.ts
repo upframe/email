@@ -271,13 +271,16 @@ export default async function (
 
       const authors = users.filter(({ id }) => id !== fields.user)
 
+      const replyTo = `${fields.channel}@reply.upframe.io`
+      const subject = newStr + ' on Upframe'
+
       context = {
         to: {
           ...user,
           displayName: user.display_name ?? user.name.split(' ')[0],
         },
         userId: user.id,
-        subject: newStr + ' on Upframe',
+        subject,
         channel: {
           id: fields.channel,
         },
@@ -290,6 +293,8 @@ export default async function (
           name: authors.length === 1 ? authors[0].name : undefined,
           email: 'notifications@upframe.io',
         },
+        replyTo,
+        replyAddress: `${replyTo}?subject=Re:%20${encodeURIComponent(subject)}`,
         timestamp: new Date().toISOString(),
         unsubToken: token(),
       }
