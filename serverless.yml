@@ -23,6 +23,7 @@ provider:
       Resource:
         - ${ssm:/dynamodb/conversations/arn}
         - ${ssm:/dynamodb/connections/arn}
+        - ${ssm:/dynamodb/email_msg_replies/arn}
 
 functions:
   email:
@@ -47,7 +48,7 @@ functions:
       DB_PASSWORD: ${ssm:/email/DB/Password~true}
       BUCKET_URL: ${ssm:/API/ProfilePictures/BucketUrl}
   inbound:
-    handler: src/handler.inbound
+    handler: src/inbound.inbound
     events:
       - http:
           path: /inbound

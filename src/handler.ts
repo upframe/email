@@ -1,7 +1,6 @@
 import logger from './utils/logger'
 import send from './send'
 import connectDB from './utils/db'
-export { default as inbound } from './inbound'
 
 export const email = async event => {
   if (process.env.IS_OFFLINE && event.Action === 'Publish')
