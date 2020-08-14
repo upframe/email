@@ -4,8 +4,8 @@ import fetch from 'node-fetch'
 import { ddb } from './utils/aws'
 
 const POST = `
-  mutation EmailReply($channel: ID!, $content: String!, $email: String!) {
-    postForUser(content: $content, channel: $channel, email: $email)
+  mutation EmailReply($channel: ID!, $content: String!, $email: String!, $timestamp: String) {
+    postForUser(content: $content, channel: $channel, email: $email, timestamp: $timestamp)
   }
 `
 
@@ -42,7 +42,12 @@ export const inbound = async event => {
       const request = {
         operationName: 'EmailReply',
         query: POST,
-        variables: { channel, content: reply, email: sender },
+        variables: {
+          channel,
+          content: reply,
+          email: sender,
+          timestamp: email.timestamp,
+        },
       }
 
       try {
