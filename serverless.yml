@@ -32,9 +32,6 @@ functions:
       - sns:
           arn: ${ssm:/email/SNS/arn}
           maximumRetryAttempts: 0
-      - http:
-          path: /hooks/{event}
-          method: post
     environment:
       stage: ${self:provider.stage}
       AWS_KEY_ID: ${ssm:/email/AwsKeyId}

@@ -38,6 +38,7 @@ export default async function (
   }
 
   try {
+    logger.info(`send message to ${to.email}`)
     await sg.send({ ...email })
     await db('emails').insert({
       id: msgId,
@@ -46,7 +47,6 @@ export default async function (
       to_user: context.userId,
       to_email: context.to.email,
     })
-    await db('email_events').insert({ id: msgId, event: 'queued' })
 
     if (template === 'INVITE')
       await db('invites')
