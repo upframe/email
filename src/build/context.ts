@@ -11,7 +11,7 @@ export default async function (
   fields: any,
   db: ReturnType<typeof import('../utils/db').default>
 ) {
-  let context = {}
+  let context: any = {}
   switch (template) {
     case 'INVITE': {
       if (!fields.invite) throw new Error('must provide invite id')
@@ -29,8 +29,49 @@ export default async function (
           email: data.email,
         },
         subject: `${data.name} invited you to join Upframe${
-          data.role === 'mentor' ? ' as a mentor' : ''
+          data.role === 'mentor' ? ' as a mentor' : '8'
         }`,
+      }
+      break
+    }
+
+    case 'SPACE_INVITE': {
+      if (!fields.invite) throw new Error('must provide invite id')
+      context = await db('space_invites')
+        .leftJoin('users', 'users.id', '=', 'space_invites.issuer')
+        .leftJoin('spaces', 'spaces.id', '=', 'space_invites.space')
+        .where({ 'space_invites.id': fields.invite })
+        .select(
+          'space_invites.*',
+          'space_invites.mentor',
+          'space_invites.owner',
+          'spaces.space_imgs',
+          'spaces.name as spaceName',
+          'spaces.handle as spaceHandle',
+          'users.name as userName',
+          'users.handle as userHandle'
+        )
+        .first()
+      context.role = context.owner
+        ? 'owner'
+        : context.mentor
+        ? 'mentor'
+        : 'founder'
+
+      const img = (context.space_imgs as string[])
+        ?.filter(v => v.endsWith('.jpeg'))
+        ?.sort(
+          (a, b) =>
+            parseInt(a.match(/-(\d+)/)?.[1]) - parseInt(b.match(/-(\d+)/)?.[1])
+        )?.[0]
+      context.logo = img
+        ? 'https://d1misjhz20pz2i.cloudfront.net/spaces/6edf801e-6f7c-4444-8743-2f47f8ed8865/' +
+          img
+        : 'https://beta.upframe.io/emailLogo.png'
+      context.token = context.id
+      context.subject = `${context.userName} invited you to join the ${context.spaceName} space on Upframe`
+      context.to = {
+        email: context.email,
       }
       break
     }

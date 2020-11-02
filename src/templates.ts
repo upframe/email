@@ -3,6 +3,10 @@ const templates = {
     type: 'MJML',
     file: 'invite.mjml',
   },
+  SPACE_INVITE: {
+    type: 'MJML',
+    file: 'space-invite.mjml',
+  },
   RESET_PASSWORD: {
     type: 'MJML',
     file: 'reset-password.mjml',
