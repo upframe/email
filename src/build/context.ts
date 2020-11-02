@@ -38,14 +38,17 @@ export default async function (
     case 'SPACE_INVITE': {
       if (!fields.invite) throw new Error('must provide invite id')
       context = await db('space_invites')
-        .leftJoin('users', 'users.id', '=', 'space_invites.issuer')
-        .leftJoin('spaces', 'spaces.id', '=', 'space_invites.space')
+        .leftJoin('spaces', { 'spaces.id': 'space_invites.space' })
+        .leftJoin('invites', { 'invites.id': 'space_invites.id' })
+        .leftJoin('users', { 'users.id': 'invites.issuer' })
         .where({ 'space_invites.id': fields.invite })
         .select(
           'space_invites.*',
+          'invites.email',
           'space_invites.mentor',
           'space_invites.owner',
           'spaces.space_imgs',
+          'spaces.id as spaceId',
           'spaces.name as spaceName',
           'spaces.handle as spaceHandle',
           'users.name as userName',
@@ -65,14 +68,16 @@ export default async function (
             parseInt(a.match(/-(\d+)/)?.[1]) - parseInt(b.match(/-(\d+)/)?.[1])
         )?.[0]
       context.logo = img
-        ? 'https://d1misjhz20pz2i.cloudfront.net/spaces/6edf801e-6f7c-4444-8743-2f47f8ed8865/' +
+        ? `https://d1misjhz20pz2i.cloudfront.net/spaces/${context.spaceId}/` +
           img
         : 'https://beta.upframe.io/emailLogo.png'
+
       context.token = context.id
       context.subject = `${context.userName} invited you to join the ${context.spaceName} space on Upframe`
       context.to = {
         email: context.email,
       }
+
       break
     }
 
