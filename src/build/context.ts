@@ -156,11 +156,17 @@ export default async function (
     }
 
     case 'SLOT_REQUEST': {
-      const meetup = await db('time_slots')
-        .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
-        .where({ id: fields.slot })
-        .select('time_slots.*', 'meetups.message', 'meetups.location')
-        .first()
+      let meetup = fields.call
+        ? await db('calls')
+            .leftJoin('time_slots', 'time_slots.id', 'calls.slot_id')
+            .where({ 'calls.id': fields.call })
+            .select('time_slots.*', 'calls.message', 'calls.location')
+            .first()
+        : await db('time_slots')
+            .leftJoin('meetups', 'meetups.slot_id', 'time_slots.id')
+            .where({ id: fields.slot })
+            .select('time_slots.*', 'meetups.message', 'meetups.location')
+            .first()
       const data = await db('users').whereIn('id', [
         meetup.mentor_id,
         fields.requester,
