@@ -33,7 +33,7 @@
     "moment-timezone": "^0.5.31",
     "mustache": "^4.0.1",
     "node-email-reply-parser": "^0.1.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.1.1",
     "pg": "^8.1.0",
     "source-map-support": "^0.5.19",
     "spacetime-informal": "^0.3.0",
