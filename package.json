@@ -27,7 +27,7 @@
     "@babel/runtime": "^7.9.6",
     "@sendgrid/mail": "^7.2.3",
     "core-js": "^3.6.5",
-    "knex": "^0.21.1",
+    "knex": "^2.4.0",
     "markdown-it": "^11.0.0",
     "mjml": "^4.6.3",
     "moment-timezone": "^0.5.31",
